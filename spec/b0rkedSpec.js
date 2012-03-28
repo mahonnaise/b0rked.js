@@ -65,6 +65,11 @@ describe('broken', function () {
 	it('should ignore the contents of CDATA sections', function () {
 		expect(broken('<![CDATA[ < ]]>')).toBeUndefined();
 	});
+	it('should complain about tag names which aren\'t completely lowercase', function () {
+		expect(broken('<IMG/>')).toEqual('replace "<IMG/>" with "<img/>"');
+		expect(broken('<imG/>')).toEqual('replace "<imG/>" with "<img/>"');
+		expect(broken('<div></DIV>')).toEqual('replace "</DIV>" with "</div>"');
+	});
 });
 
 describe('onTheWhiteList', function () {

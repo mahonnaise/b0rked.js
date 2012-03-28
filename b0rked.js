@@ -7,6 +7,7 @@
 		isVoidTag = /\/>$/,
 		isDoctype = /^<!doctype\s+[^>]+>$/i,
 		grabTags = /<[^>]+>/g,
+		containsSomeUpperCase = /^<\/?[a-z]*[A-Z]+/,
 		// http://www.w3.org/TR/html-markup/syntax.html#syntax-elements
 		voidTagNames = ['area', 'base', 'br', 'col', 'command', 'embed', 'hr',
 			'img', 'input', 'keygen', 'link', 'meta', 'param', 'source',
@@ -16,6 +17,7 @@
 		stripRegions,
 		broken;
 
+	// checks if the list of known void tags contains the given tag name
 	onTheWhiteList = function (tagName) {
 		var i;
 		for (i = voidTagNames.length; i--;) {
@@ -29,6 +31,8 @@
 		return true;
 	};
 
+	// checks if the number of `<` characters matches the number of `>`
+	// characters
 	angleBracketsBalanced = function (markup) {
 		var balance = 0, i;
 		for (i = markup.length; i--;) {
@@ -44,6 +48,8 @@
 		return true;
 	};
 
+	// removes all regions which start with `startMarker` and end with
+	// `endMarker`
 	stripRegions = function (text, startMarker, endMarker) {
 		var from, to, stripped = '', lastEnd = 0;
 		from = text.indexOf(startMarker);
@@ -61,6 +67,7 @@
 		return stripped;
 	};
 
+	// checks if the markup is obviously broken
 	broken = function (markup) {
 		var stack = [],
 			i,
@@ -71,6 +78,8 @@
 			popped;
 
 		// remove all non-markup regions
+		// NOTE: Doesn't handle SCRIPT/STYLE. Those are currently caught by the
+		// check which ensures that tag names are all lowercase.
 		markup = stripRegions(markup, '<script', '</script>');
 		markup = stripRegions(markup, '<style', '</style>');
 		markup = stripRegions(markup, '<![CDATA[', ']]>');
@@ -83,10 +92,20 @@
 				tag = tags[i];
 				tagName = tag.match(grabTagName)[0];
 
+				// non-uppercase tag names
+				// SIDE-EFFECT: This also catches SCRIPT/STYLE, which isn't
+				// filtered by the stripRegions stuff above. If this is removed,
+				// the stripRegions stuff above needs to be modified.
+				if (containsSomeUpperCase.test(tag) && !isDoctype.test(tag)) {
+					return 'replace "' + tag + '" with "' + tag.toLowerCase() +
+						'"';
+				}
+
 				if (isClosingTag.test(tag)) {
 					// illegal closing tag for void tag
 					if (onTheWhiteList(tagName)) {
-						return 'there shouldn\'t be a closing "</' + tagName + '>" tag';
+						return 'there shouldn\'t be a closing "</' + tagName +
+							'>" tag';
 					}
 					if (stack.length) {
 						popped = stack.pop();
