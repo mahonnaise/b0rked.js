@@ -15,6 +15,7 @@
 		onTheWhiteList,
 		angleBracketsBalanced,
 		stripRegions,
+		missingQuoteCharacter,
 		broken;
 
 	// checks if the list of known void tags contains the given tag name
@@ -67,6 +68,22 @@
 		return stripped;
 	};
 
+	// returns the missing quote character (if any)
+	missingQuoteCharacter = function (text) {
+		var i, len, current, currentQuoteCharacter;
+		for (i = 0, len = text.length; i < len; i++) {
+			current = text.charAt(i);
+			if (current === '"' || current === "'") {
+				if (currentQuoteCharacter) {
+					currentQuoteCharacter = undefined;
+				} else {
+					currentQuoteCharacter = current;
+				}
+			}
+		}
+		return currentQuoteCharacter;
+	};
+
 	// checks if the markup is obviously broken
 	broken = function (markup) {
 		var stack = [],
@@ -91,6 +108,11 @@
 			for (i = 0, len = tags.length; i < len; i++) {
 				tag = tags[i];
 				tagName = tag.match(grabTagName)[0];
+
+				// find missing quote characters inside tags
+				if (missingQuoteCharacter(tag)) {
+					return 'missing ' + missingQuoteCharacter(tag);
+				}
 
 				// non-uppercase tag names
 				// SIDE-EFFECT: This also catches SCRIPT/STYLE, which isn't
@@ -149,6 +171,7 @@
 		exports.onTheWhiteList = onTheWhiteList;
 		exports.angleBracketsBalanced = angleBracketsBalanced;
 		exports.stripRegions = stripRegions;
+		exports.missingQuoteCharacter = missingQuoteCharacter;
 	} else {
 		window.b0rked = broken;
 	}

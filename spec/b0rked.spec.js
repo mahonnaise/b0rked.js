@@ -70,6 +70,10 @@ describe('broken', function () {
 		expect(broken('<imG/>')).toEqual('replace "<imG/>" with "<img/>"');
 		expect(broken('<div></DIV>')).toEqual('replace "</DIV>" with "</div>"');
 	});
+	it('should complain about missing quotes', function () {
+		expect(broken('<a href="adf></a>')).toEqual('missing "');
+		expect(broken("<a href='adf></a>")).toEqual("missing '");
+	});
 });
 
 describe('onTheWhiteList', function () {
@@ -119,5 +123,20 @@ describe('stripRegions', function () {
 		expect(stripRegions('1[[2]]3', '[[', ']]')).toEqual('13');
 		expect(stripRegions('a[b]c[d]e', '[', ']')).toEqual('ace');
 		expect(stripRegions('aa[bb]cc[dd]ee', '[', ']')).toEqual('aaccee');
+	});
+});
+
+describe('missingQuoteCharacter', function () {
+	var missingQuoteCharacter = b0rked.missingQuoteCharacter;
+
+	it('should tell which quote character is missing', function () {
+		expect(missingQuoteCharacter('"bar')).toEqual('"');
+		expect(missingQuoteCharacter("'bar")).toEqual("'");
+	});
+
+	it('should return undefined if everything is alright', function () {
+		expect(missingQuoteCharacter('')).toBeUndefined();
+		expect(missingQuoteCharacter('"foo"')).toBeUndefined();
+		expect(missingQuoteCharacter("'foo'")).toBeUndefined();
 	});
 });
