@@ -9,7 +9,7 @@ describe('broken', function () {
 	it('should complain about misnested (overlapping) tags', function () {
 		expect(broken('<a><b></a></b>')).toEqual('got "</a>", expected "</b>"');
 	});
-	it('should complain about closing superfluous closing tags', function () {
+	it('should complain about superfluous closing tags', function () {
 		expect(broken('</a>')).toEqual('closing "</a>", wasn\'t open');
 	});
 	it('should complain about void tags which aren\'t on the white list', function () {
